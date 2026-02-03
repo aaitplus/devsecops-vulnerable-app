@@ -53,7 +53,7 @@ jobs:
       run: mkdir -p reports
 
     - name: Upload Dependency-Check results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: dependency-check-report
         path: reports/dependency-check-report.html
