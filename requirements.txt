@@ -1,0 +1,148 @@
+# DevSecOps Vulnerable App Project - System Requirements
+# This file lists all tools and dependencies required to run the project
+# Install these prerequisites before running the application
+
+# Core Development Tools
+# ======================
+
+# Git (Version Control)
+# Minimum: 2.30.0
+# Installation: https://git-scm.com/downloads
+git>=2.30.0
+
+# Node.js (Runtime for Juice Shop)
+# Minimum: 16.0.0, Recommended: 18.x LTS
+# Installation: https://nodejs.org/
+nodejs>=16.0.0
+
+# Docker (Container Runtime)
+# Minimum: 20.10.0
+# Installation: https://docs.docker.com/get-docker/
+docker>=20.10.0
+
+# kubectl (Kubernetes CLI)
+# Minimum: 1.24.0
+# Installation: https://kubernetes.io/docs/tasks/tools/
+kubectl>=1.24.0
+
+# Terraform (Infrastructure as Code)
+# Minimum: 1.0.0
+# Installation: https://developer.hashicorp.com/terraform/downloads
+terraform>=1.0.0
+
+# AWS CLI (Cloud Deployment)
+# Minimum: 2.0.0
+# Installation: https://aws.amazon.com/cli/
+awscli>=2.0.0
+
+# Security Scanning Tools
+# =======================
+
+# Trivy (Container Vulnerability Scanner)
+# Installation: https://aquasecurity.github.io/trivy/
+trivy>=0.40.0
+
+# Semgrep (Static Application Security Testing)
+# Installation: https://semgrep.dev/docs/getting-started/
+semgrep>=1.0.0
+
+# Gitleaks (Secret Detection)
+# Installation: https://github.com/gitleaks/gitleaks
+gitleaks>=8.0.0
+
+# OWASP Dependency-Check (Dependency Vulnerability Scanner)
+# Installation: https://owasp.org/www-project-dependency-check/
+dependency-check>=7.0.0
+
+# tfsec (Terraform Security Scanner)
+# Installation: https://aquasecurity.github.io/tfsec/
+tfsec>=1.28.0
+
+# Optional Tools (Recommended)
+# ============================
+
+# Helm (Kubernetes Package Manager)
+# Installation: https://helm.sh/docs/intro/install/
+helm>=3.0.0
+
+# Kustomize (Kubernetes Configuration Management)
+# Installation: https://kubectl.docs.kubernetes.io/installation/kustomize/
+kustomize>=4.0.0
+
+# jq (JSON Processor for scripts)
+# Installation: https://stedolan.github.io/jq/download/
+jq>=1.6
+
+# curl (HTTP Client)
+# Usually pre-installed on most systems
+curl>=7.0.0
+
+# wget (Alternative HTTP Client)
+# Usually pre-installed on most systems
+wget>=1.20
+
+# Installation Instructions
+# ========================
+
+# Linux (Ubuntu/Debian):
+# sudo apt update
+# sudo apt install -y curl wget jq git nodejs npm docker.io
+
+# Install kubectl:
+# curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+# chmod +x kubectl && sudo mv kubectl /usr/local/bin/
+
+# Install Terraform:
+# wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+# echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com jammy main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+# sudo apt update && sudo apt install terraform
+
+# Install AWS CLI:
+# curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+# unzip awscliv2.zip && sudo ./aws/install
+
+# Install Security Tools:
+# Install Trivy: https://aquasecurity.github.io/trivy/getting-started/installation/
+# Install Semgrep: pip3 install semgrep
+# Install Gitleaks: https://github.com/gitleaks/gitleaks/releases
+# Install Dependency-Check: https://owasp.org/www-project-dependency-check/
+# Install tfsec: https://aquasecurity.github.io/tfsec/getting-started/
+
+# macOS (using Homebrew):
+# brew install git node docker kubectl terraform awscli trivy semgrep gitleaks jq curl wget
+
+# Windows (using Chocolatey):
+# choco install git nodejs docker-cli kubernetes-cli terraform awscli trivy semgrep gitleaks jq curl wget
+
+# Verification Commands
+# ====================
+
+# Verify installations:
+# git --version
+# node --version
+# docker --version
+# kubectl version --client
+# terraform version
+# aws --version
+# trivy --version
+# semgrep --version
+# gitleaks --version
+# dependency-check --version (if installed)
+# tfsec --version
+
+# Minimum System Requirements
+# ===========================
+
+# OS: Linux, macOS, or Windows 10+
+# RAM: 8GB minimum, 16GB recommended
+# Disk: 20GB free space minimum
+# Network: Stable internet connection for downloads and cloud operations
+
+# Notes
+# =====
+
+# - Docker requires privileged access; you may need to add your user to the docker group
+# - AWS CLI requires AWS credentials configuration for cloud deployment
+# - Some tools may require additional system dependencies (e.g., build tools for Node.js)
+# - Versions listed are minimum requirements; newer versions are generally recommended
+# - For production deployments, ensure all tools are updated to their latest stable versions

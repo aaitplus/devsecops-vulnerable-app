@@ -1,0 +1,385 @@
+/* Modern Purple Hacker-Style Theme for OWASP Juice Shop */
+/* Apply this theme to transform the application into a cyberpunk aesthetic */
+
+:root {
+  --primary-purple: #8B5CF6;
+  --secondary-purple: #A855F7;
+  --dark-purple: #581C87;
+  --neon-purple: #C084FC;
+  --cyber-green: #00FF88;
+  --cyber-blue: #00D4FF;
+  --dark-bg: #0F0F23;
+  --darker-bg: #1A1A2E;
+  --card-bg: #16213E;
+  --text-primary: #E2E8F0;
+  --text-secondary: #94A3B8;
+  --border-color: #334155;
+  --glow-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+  --neon-shadow: 0 0 10px var(--cyber-green), 0 0 20px var(--cyber-green), 0 0 40px var(--cyber-green);
+}
+
+body {
+  background: linear-gradient(135deg, var(--dark-bg) 0%, var(--darker-bg) 100%);
+  color: var(--text-primary);
+  font-family: 'Courier New', monospace;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+/* Animated background particles */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image:
+    radial-gradient(circle at 20% 80%, var(--primary-purple) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, var(--cyber-blue) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, var(--cyber-green) 0%, transparent 50%);
+  opacity: 0.1;
+  z-index: -1;
+  animation: particleFloat 20s ease-in-out infinite;
+}
+
+@keyframes particleFloat {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  33% { transform: translateY(-10px) rotate(120deg); }
+  66% { transform: translateY(10px) rotate(240deg); }
+}
+
+/* Navigation */
+.navbar {
+  background: linear-gradient(90deg, var(--dark-purple), var(--primary-purple)) !important;
+  border-bottom: 2px solid var(--neon-purple) !important;
+  box-shadow: var(--glow-shadow);
+  backdrop-filter: blur(10px);
+}
+
+.navbar-brand {
+  color: var(--cyber-green) !important;
+  font-weight: bold;
+  text-shadow: 0 0 10px var(--cyber-green);
+  font-family: 'Courier New', monospace;
+}
+
+.navbar-nav .nav-link {
+  color: var(--text-primary) !important;
+  transition: all 0.3s ease;
+}
+
+.navbar-nav .nav-link:hover {
+  color: var(--cyber-blue) !important;
+  text-shadow: 0 0 5px var(--cyber-blue);
+}
+
+/* Cards and Components */
+.card {
+  background: var(--card-bg) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 15px !important;
+  box-shadow: var(--glow-shadow);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(139, 92, 246, 0.4);
+  border-color: var(--primary-purple) !important;
+}
+
+.card-header {
+  background: linear-gradient(90deg, var(--dark-purple), var(--primary-purple)) !important;
+  border-bottom: 1px solid var(--neon-purple) !important;
+  color: var(--text-primary) !important;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.card-body {
+  color: var(--text-primary) !important;
+}
+
+/* Buttons */
+.btn {
+  border-radius: 25px !important;
+  font-weight: bold !important;
+  text-transform: uppercase !important;
+  letter-spacing: 1px !important;
+  transition: all 0.3s ease !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.5s;
+}
+
+.btn:hover::before {
+  left: 100%;
+}
+
+.btn-primary {
+  background: linear-gradient(45deg, var(--primary-purple), var(--secondary-purple)) !important;
+  border: 2px solid var(--neon-purple) !important;
+  color: white !important;
+  box-shadow: var(--glow-shadow);
+}
+
+.btn-primary:hover {
+  background: linear-gradient(45deg, var(--secondary-purple), var(--primary-purple)) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(139, 92, 246, 0.6);
+}
+
+.btn-success {
+  background: linear-gradient(45deg, var(--cyber-green), #00CC77) !important;
+  border: 2px solid var(--cyber-green) !important;
+  color: var(--dark-bg) !important;
+  box-shadow: var(--neon-shadow);
+}
+
+.btn-danger {
+  background: linear-gradient(45deg, #FF4757, #FF3838) !important;
+  border: 2px solid #FF4757 !important;
+  color: white !important;
+  box-shadow: 0 0 10px rgba(255, 71, 87, 0.3);
+}
+
+/* Form Elements */
+.form-control {
+  background: var(--darker-bg) !important;
+  border: 2px solid var(--border-color) !important;
+  border-radius: 10px !important;
+  color: var(--text-primary) !important;
+  transition: all 0.3s ease;
+}
+
+.form-control:focus {
+  border-color: var(--primary-purple) !important;
+  box-shadow: 0 0 0 0.2rem rgba(139, 92, 246, 0.25) !important;
+  background: var(--card-bg) !important;
+}
+
+.form-label {
+  color: var(--text-secondary) !important;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+
+/* Alerts */
+.alert {
+  border-radius: 10px !important;
+  border: none !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.alert::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--cyber-green);
+}
+
+.alert-success {
+  background: rgba(0, 255, 136, 0.1) !important;
+  color: var(--cyber-green) !important;
+  border-left: 4px solid var(--cyber-green) !important;
+}
+
+.alert-danger {
+  background: rgba(255, 71, 87, 0.1) !important;
+  color: #FF4757 !important;
+  border-left: 4px solid #FF4757 !important;
+}
+
+.alert-warning {
+  background: rgba(255, 193, 7, 0.1) !important;
+  color: #FFC107 !important;
+  border-left: 4px solid #FFC107 !important;
+}
+
+/* Tables */
+.table {
+  background: var(--card-bg) !important;
+  color: var(--text-primary) !important;
+  border-radius: 10px !important;
+  overflow: hidden;
+}
+
+.table thead th {
+  background: linear-gradient(90deg, var(--dark-purple), var(--primary-purple)) !important;
+  color: var(--text-primary) !important;
+  border: none !important;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.table tbody tr {
+  transition: all 0.3s ease;
+}
+
+.table tbody tr:hover {
+  background: rgba(139, 92, 246, 0.1) !important;
+  transform: scale(1.01);
+}
+
+/* Product Cards */
+.product-card, .thumbnail {
+  background: var(--card-bg) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 15px !important;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.product-card:hover, .thumbnail:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(139, 92, 246, 0.4);
+  border-color: var(--primary-purple) !important;
+}
+
+/* Footer */
+.footer, footer {
+  background: linear-gradient(135deg, var(--dark-purple), var(--darker-bg)) !important;
+  border-top: 2px solid var(--neon-purple) !important;
+  color: var(--text-secondary) !important;
+}
+
+/* Loading Animation */
+.spinner-border {
+  color: var(--cyber-green) !important;
+  border-color: var(--cyber-green) !important;
+  border-right-color: transparent !important;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--dark-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--primary-purple);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--secondary-purple);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .card {
+    margin: 10px;
+  }
+
+  .navbar-brand {
+    font-size: 1.2rem;
+  }
+}
+
+/* Glitch Effect for Special Elements */
+@keyframes glitch {
+  0% { transform: translate(0); }
+  20% { transform: translate(-2px, 2px); }
+  40% { transform: translate(-2px, -2px); }
+  60% { transform: translate(2px, 2px); }
+  80% { transform: translate(2px, -2px); }
+  100% { transform: translate(0); }
+}
+
+.glitch-text {
+  animation: glitch 2s infinite;
+  color: var(--cyber-green);
+  text-shadow: 0 0 10px var(--cyber-green);
+}
+
+/* Cyberpunk Terminal Style */
+.terminal-style {
+  background: var(--dark-bg);
+  border: 2px solid var(--primary-purple);
+  border-radius: 10px;
+  padding: 20px;
+  font-family: 'Courier New', monospace;
+  position: relative;
+}
+
+.terminal-style::before {
+  content: 'root@juice-shop:~# ';
+  color: var(--cyber-green);
+  font-weight: bold;
+}
+
+/* Security Badge */
+.security-badge {
+  background: linear-gradient(45deg, var(--cyber-green), var(--cyber-blue));
+  color: var(--dark-bg);
+  padding: 5px 15px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow: var(--neon-shadow);
+}
+
+/* Pulse Animation */
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.7); }
+  70% { box-shadow: 0 0 0 10px rgba(139, 92, 246, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0); }
+}
+
+.pulse {
+  animation: pulse 2s infinite;
+}
+
+/* Matrix Rain Effect (Optional) */
+.matrix-rain {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: -2;
+  opacity: 0.05;
+}
+
+.matrix-rain::after {
+  content: '0101001001010010010100100101001001010010';
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  color: var(--cyber-green);
+  position: absolute;
+  top: -100px;
+  animation: matrix-fall 10s linear infinite;
+}
+
+@keyframes matrix-fall {
+  0% { top: -100px; }
+  100% { top: 100vh; }
+}
