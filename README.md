@@ -52,7 +52,7 @@ Before running this project, ensure you have all required tools installed. See [
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/devsecops-vulnerable-app.git
+git clone https://github.com/aaitplus/devsecops-vulnerable-app.git
 cd devsecops-vulnerable-app
 
 # Clone OWASP Juice Shop
