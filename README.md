@@ -310,3 +310,5 @@ DEBUG=1 ./scripts/deploy.sh
 ---
 
 **⚠️ Disclaimer:** This project is for educational and training purposes only. The vulnerabilities in OWASP Juice Shop are intentional and should not be used in production environments.
+
+**I build security-first systems that automate detection, simulation, and remediation across the SDLC.**
