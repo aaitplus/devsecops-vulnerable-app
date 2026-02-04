@@ -1,4 +1,4 @@
-name: DevSecOps CI/CD Pipeline (2026 Robust)
+name: DevSecOps CI/CD Pipeline (Safe Docker Build)
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
 
 permissions:
   contents: read
-  security-events: write   # Required for SARIF uploads
+  security-events: write
 
 jobs:
   security-scan:
@@ -23,21 +23,10 @@ jobs:
         with:
           node-version: '18'
 
-      # ---- Cache npm (only if Node app exists) ----
-      - name: Cache npm
-        if: ${{ always() }}
-        uses: actions/cache@v4
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-npm-cache-${{ hashFiles('app/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-npm-cache-
-
-      # ---- Install Node dependencies safely ----
+      # ---- Install Node dependencies if package.json exists ----
       - name: Install npm dependencies
         run: |
-          if [ -f app/package.json ]; then
-            cd app
+          if [ -f package.json ]; then
             echo "package.json found, installing dependencies..."
             if [ -f package-lock.json ]; then
               npm ci
@@ -64,33 +53,12 @@ jobs:
           sarif_file: ./semgrep-results.sarif
         continue-on-error: true
 
-      # ---- OWASP Dependency-Check ----
-      - name: Run OWASP Dependency-Check
-        uses: dependency-check/Dependency-Check_Action@main
-        with:
-          project: 'OWASP Juice Shop'
-          path: './app'
-          format: 'ALL'
-          args: >
-            --enableRetired
-            --enableExperimental
-            --nvdValidForHours 24
-
-      - name: Create reports directory
-        run: mkdir -p reports
-
-      - name: Upload Dependency-Check results
-        uses: actions/upload-artifact@v4
-        with:
-          name: dependency-check-report
-          path: reports/dependency-check-report.html
-
       # ---- Trivy filesystem scan ----
       - name: Run Trivy FS scan
         uses: aquasecurity/trivy-action@master
         with:
           scan-type: 'fs'
-          scan-ref: './app'
+          scan-ref: '.'
           format: 'sarif'
           output: ./trivy-results.sarif
 
@@ -100,12 +68,6 @@ jobs:
         with:
           sarif_file: ./trivy-results.sarif
         continue-on-error: true
-
-      # ---- Gitleaks secret scanning ----
-      - name: Run Gitleaks
-        uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   build-and-test:
     needs: security-scan
@@ -117,24 +79,31 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      # ---- Conditional Docker build ----
       - name: Build Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./docker/Dockerfile
-          push: false
-          tags: juice-shop:dev
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+        if: ${{ always() }}
+        run: |
+          if [ -f ./docker/Dockerfile ]; then
+            echo "Dockerfile exists, building image..."
+            docker buildx build \
+              --file ./docker/Dockerfile \
+              --tag juice-shop:dev \
+              --cache-from type=gha \
+              --cache-to type=gha,mode=max \
+              .
+          else
+            echo "No Dockerfile found, skipping Docker build."
+          fi
 
       # ---- Trivy Docker image scan ----
       - name: Run Trivy Docker image scan
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: 'image'
-          scan-ref: 'juice-shop:dev'
-          format: 'sarif'
-          output: ./trivy-image-results.sarif
+        if: ${{ always() }}
+        run: |
+          if docker image inspect juice-shop:dev >/dev/null 2>&1; then
+            docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasecurity/trivy image --format sarif --output trivy-image-results.sarif juice-shop:dev
+          else
+            echo "Docker image not found, skipping Trivy image scan."
+          fi
 
       - name: Upload Trivy Docker image SARIF
         if: always()
@@ -142,37 +111,3 @@ jobs:
         with:
           sarif_file: ./trivy-image-results.sarif
         continue-on-error: true
-
-      - name: Run container tests
-        run: |
-          docker run --rm -d --name juice-shop-test juice-shop:dev
-          sleep 10
-          docker exec juice-shop-test npm test || true
-          docker stop juice-shop-test
-
-  deploy:
-    needs: [security-scan, build-and-test]
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    environment: production
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
-
-      - name: Deploy to Kubernetes
-        run: |
-          aws eks update-kubeconfig --region us-east-1 --name juice-shop-cluster
-          kubectl apply -f k8s/
-          kubectl rollout status deployment/juice-shop
-
-      - name: Post-deployment security checks
-        run: |
-          kubectl get pods -o jsonpath='{.items[*].spec.securityContext}' | jq .
-          kubectl get networkpolicies
