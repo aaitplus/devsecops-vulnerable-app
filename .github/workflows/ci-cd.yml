@@ -1,4 +1,4 @@
-name: DevSecOps CI/CD Pipeline 
+name: DevSecOps CI/CD Pipeline (2026 Robust)
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
 
 permissions:
   contents: read
-  security-events: write   # Required for SARIF uploads
+  security-events: write   # required for SARIF uploads
 
 jobs:
   security-scan:
@@ -23,8 +23,9 @@ jobs:
         with:
           node-version: '18'
 
-      # ---- Manual npm cache ----
-      - name: Cache npm
+      # ---- Conditional npm cache and install ----
+      - name: Cache npm if Node app exists
+        if: ${{ always() }}
         uses: actions/cache@v4
         with:
           path: ~/.npm
@@ -32,14 +33,18 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-npm-cache-
 
-      # ---- Install dependencies safely ----
-      - name: Install npm dependencies
+      - name: Install npm dependencies if package.json exists
         run: |
-          cd app
-          if [ -f package-lock.json ]; then
-            npm ci
+          if [ -f app/package.json ]; then
+            cd app
+            echo "package.json found, installing dependencies..."
+            if [ -f package-lock.json ]; then
+              npm ci
+            else
+              npm install
+            fi
           else
-            npm install
+            echo "No package.json found, skipping Node.js install."
           fi
 
       # ---- Semgrep SAST ----
@@ -99,7 +104,7 @@ jobs:
             echo "Trivy FS SARIF file not found, skipping upload."
           fi
 
-      # ---- Gitleaks ----
+      # ---- Gitleaks secret scanning ----
       - name: Run Gitleaks
         uses: gitleaks/gitleaks-action@v2
         env:
