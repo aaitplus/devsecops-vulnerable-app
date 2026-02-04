@@ -1,122 +1,135 @@
-name: DevSecOps CI/CD Pipeline
+name: DevSecOps CI/CD Pipeline (2026 Safe SARIF)
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main ]
+    branches: [main]
+
+permissions:
+  contents: read
+  security_events: write  # Required for SARIF upload
 
 jobs:
   security-scan:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-        cache: 'npm'
-        cache-dependency-path: app/package-lock.json
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: app/package-lock.json
 
-    - name: Install dependencies
-      run: |
-        cd app
-        npm ci
+      - name: Install dependencies
+        run: |
+          cd app
+          npm ci
 
-    - name: Run Semgrep SAST
-      uses: returntocorp/semgrep-action@v1
-      with:
-        config: p/default
-        generateSarif: 1
-      continue-on-error: true
+      # ---- Semgrep ----
+      - name: Run Semgrep SAST
+        id: semgrep
+        uses: returntocorp/semgrep-action@v1
+        with:
+          config: p/default
+          generateSarif: 1
+          sarif_output: ./semgrep-results.sarif
+        continue-on-error: true
 
-    - name: Upload Semgrep results
-      uses: github/codeql-action/upload-sarif@v2
-      with:
-        sarif_file: semgrep.sarif
-      if: always()
+      - name: Upload Semgrep SARIF results
+        if: ${{ always() && (exists('./semgrep-results.sarif')) }}
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: ./semgrep-results.sarif
 
-    - name: Run OWASP Dependency-Check
-      uses: dependency-check/Dependency-Check_Action@main
-      with:
-        project: 'OWASP Juice Shop'
-        path: './app'
-        format: 'ALL'
-        args: >
-          --enableRetired
-          --enableExperimental
-          --nvdValidForHours 24
+      # ---- OWASP Dependency-Check ----
+      - name: Run OWASP Dependency-Check
+        uses: dependency-check/Dependency-Check_Action@main
+        with:
+          project: 'OWASP Juice Shop'
+          path: './app'
+          format: 'ALL'
+          args: >
+            --enableRetired
+            --enableExperimental
+            --nvdValidForHours 24
 
-    - name: Create reports directory
-      run: mkdir -p reports
+      - name: Create reports directory
+        run: mkdir -p reports
 
-    - name: Upload Dependency-Check results
-      uses: actions/upload-artifact@v4
-      with:
-        name: dependency-check-report
-        path: reports/dependency-check-report.html
+      - name: Upload Dependency-Check results
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-check-report
+          path: reports/dependency-check-report.html
 
-    - name: Run Trivy vulnerability scanner
-      uses: aquasecurity/trivy-action@master
-      with:
-        scan-type: 'fs'
-        scan-ref: './app'
-        format: 'sarif'
-        output: 'trivy-results.sarif'
+      # ---- Trivy FS scan ----
+      - name: Run Trivy filesystem scan
+        id: trivy_fs
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: './app'
+          format: 'sarif'
+          output: './trivy-results.sarif'
 
-    - name: Upload Trivy results
-      uses: github/codeql-action/upload-sarif@v2
-      with:
-        sarif_file: trivy-results.sarif
-      if: always()
+      - name: Upload Trivy FS SARIF
+        if: ${{ always() && (exists('./trivy-results.sarif')) }}
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: ./trivy-results.sarif
 
-    - name: Run Gitleaks secret scanning
-      uses: gitleaks/gitleaks-action@v2
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # ---- Gitleaks secret scanning ----
+      - name: Run Gitleaks secret scanning
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   build-and-test:
     needs: security-scan
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-    - name: Build Docker image
-      uses: docker/build-push-action@v5
-      with:
-        context: .
-        file: ./docker/Dockerfile
-        push: false
-        tags: juice-shop:dev
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./docker/Dockerfile
+          push: false
+          tags: juice-shop:dev
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-    - name: Run Trivy on Docker image
-      uses: aquasecurity/trivy-action@master
-      with:
-        scan-type: 'image'
-        scan-ref: 'juice-shop:dev'
-        format: 'sarif'
-        output: 'trivy-image-results.sarif'
+      # ---- Trivy Docker image scan ----
+      - name: Run Trivy Docker image scan
+        id: trivy_image
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'image'
+          scan-ref: 'juice-shop:dev'
+          format: 'sarif'
+          output: './trivy-image-results.sarif'
 
-    - name: Upload Trivy image results
-      uses: github/codeql-action/upload-sarif@v2
-      with:
-        sarif_file: trivy-image-results.sarif
-      if: always()
+      - name: Upload Trivy image SARIF
+        if: ${{ always() && (exists('./trivy-image-results.sarif')) }}
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: ./trivy-image-results.sarif
 
-    - name: Run container security scan
-      run: |
-        docker run --rm -d --name juice-shop-test juice-shop:dev
-        sleep 10
-        docker exec juice-shop-test npm test || true
-        docker stop juice-shop-test
+      - name: Run container security tests
+        run: |
+          docker run --rm -d --name juice-shop-test juice-shop:dev
+          sleep 10
+          docker exec juice-shop-test npm test || true
+          docker stop juice-shop-test
 
   deploy:
     needs: [security-scan, build-and-test]
@@ -124,25 +137,23 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     environment: production
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v4
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: us-east-1
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
 
-    - name: Deploy to Kubernetes
-      run: |
-        aws eks update-kubeconfig --region us-east-1 --name juice-shop-cluster
-        kubectl apply -f k8s/
-        kubectl rollout status deployment/juice-shop
+      - name: Deploy to Kubernetes
+        run: |
+          aws eks update-kubeconfig --region us-east-1 --name juice-shop-cluster
+          kubectl apply -f k8s/
+          kubectl rollout status deployment/juice-shop
 
-    - name: Run post-deployment security checks
-      run: |
-        # Check for security misconfigurations
-        kubectl get pods -o jsonpath='{.items[*].spec.securityContext}' | jq .
-        # Verify network policies are applied
-        kubectl get networkpolicies
+      - name: Post-deployment security checks
+        run: |
+          kubectl get pods -o jsonpath='{.items[*].spec.securityContext}' | jq .
+          kubectl get networkpolicies
