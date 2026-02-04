@@ -1,4 +1,4 @@
-name: DevSecOps CI/CD Pipeline
+name: DevSecOps CI/CD Pipeline (2026 Safe)
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
 
 permissions:
   contents: read
-  security-events: write   # ✅ correct key
+  security-events: write   # Required for SARIF upload
 
 jobs:
   security-scan:
@@ -17,12 +17,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # ---- Node.js setup + caching ----
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
-          cache: 'npm'
-          cache-dependency-path: app/package-lock.json
+          cache: 'npm'  # automatic npm caching in 2026
 
       - name: Install dependencies
         run: |
@@ -38,7 +38,7 @@ jobs:
           sarif_output: ./semgrep-results.sarif
         continue-on-error: true
 
-      - name: Upload Semgrep SARIF results
+      - name: Upload Semgrep SARIF
         if: always()
         run: |
           if [ -f ./semgrep-results.sarif ]; then
@@ -47,7 +47,7 @@ jobs:
             echo "Semgrep SARIF file not found, skipping upload."
           fi
 
-      # ---- OWASP Dependency-Check ----
+      # ---- Dependency-Check ----
       - name: Run OWASP Dependency-Check
         uses: dependency-check/Dependency-Check_Action@main
         with:
@@ -87,7 +87,7 @@ jobs:
           fi
 
       # ---- Gitleaks secret scanning ----
-      - name: Run Gitleaks secret scanning
+      - name: Run Gitleaks
         uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
