@@ -1,18 +1,19 @@
-# Use official Node.js LTS
+# Use official Node.js LTS (Alpine for small size)
 FROM node:18-alpine
 
-# Set working directory
+# Set working directory inside container
 WORKDIR /app
 
 # Copy package files and install dependencies
+# Note: only production dependencies to keep image small
 COPY package*.json ./
-RUN npm install --production
+RUN npm install --omit=dev
 
-# Copy app source code
+# Copy all source code
 COPY . .
 
-# Expose app port
+# Expose application port (Juice Shop default is 3000)
 EXPOSE 3000
 
-# Run the app
+# Default command to start the app
 CMD ["npm", "start"]
