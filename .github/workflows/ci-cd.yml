@@ -1,4 +1,4 @@
-name: DevSecOps CI/CD Pipeline (2026 Safe SARIF)
+name: DevSecOps CI/CD Pipeline
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
 
 permissions:
   contents: read
-  security_events: write  # Required for SARIF upload
+  security-events: write   # ✅ correct key
 
 jobs:
   security-scan:
@@ -31,7 +31,6 @@ jobs:
 
       # ---- Semgrep ----
       - name: Run Semgrep SAST
-        id: semgrep
         uses: returntocorp/semgrep-action@v1
         with:
           config: p/default
@@ -40,10 +39,13 @@ jobs:
         continue-on-error: true
 
       - name: Upload Semgrep SARIF results
-        if: ${{ always() && (exists('./semgrep-results.sarif')) }}
-        uses: github/codeql-action/upload-sarif@v2
-        with:
-          sarif_file: ./semgrep-results.sarif
+        if: always()
+        run: |
+          if [ -f ./semgrep-results.sarif ]; then
+            gh codeql upload-sarif ./semgrep-results.sarif
+          else
+            echo "Semgrep SARIF file not found, skipping upload."
+          fi
 
       # ---- OWASP Dependency-Check ----
       - name: Run OWASP Dependency-Check
@@ -68,7 +70,6 @@ jobs:
 
       # ---- Trivy FS scan ----
       - name: Run Trivy filesystem scan
-        id: trivy_fs
         uses: aquasecurity/trivy-action@master
         with:
           scan-type: 'fs'
@@ -77,10 +78,13 @@ jobs:
           output: './trivy-results.sarif'
 
       - name: Upload Trivy FS SARIF
-        if: ${{ always() && (exists('./trivy-results.sarif')) }}
-        uses: github/codeql-action/upload-sarif@v2
-        with:
-          sarif_file: ./trivy-results.sarif
+        if: always()
+        run: |
+          if [ -f ./trivy-results.sarif ]; then
+            gh codeql upload-sarif ./trivy-results.sarif
+          else
+            echo "Trivy FS SARIF file not found, skipping upload."
+          fi
 
       # ---- Gitleaks secret scanning ----
       - name: Run Gitleaks secret scanning
@@ -110,7 +114,6 @@ jobs:
 
       # ---- Trivy Docker image scan ----
       - name: Run Trivy Docker image scan
-        id: trivy_image
         uses: aquasecurity/trivy-action@master
         with:
           scan-type: 'image'
@@ -118,11 +121,14 @@ jobs:
           format: 'sarif'
           output: './trivy-image-results.sarif'
 
-      - name: Upload Trivy image SARIF
-        if: ${{ always() && (exists('./trivy-image-results.sarif')) }}
-        uses: github/codeql-action/upload-sarif@v2
-        with:
-          sarif_file: ./trivy-image-results.sarif
+      - name: Upload Trivy Docker image SARIF
+        if: always()
+        run: |
+          if [ -f ./trivy-image-results.sarif ]; then
+            gh codeql upload-sarif ./trivy-image-results.sarif
+          else
+            echo "Trivy image SARIF file not found, skipping upload."
+          fi
 
       - name: Run container security tests
         run: |
